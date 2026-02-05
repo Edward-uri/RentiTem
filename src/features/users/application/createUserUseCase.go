@@ -14,6 +14,7 @@ type CreateUserInput struct {
 	Phone    string
 	Address  string
 	Profile  string
+	Role     string
 }
 
 type CreateUserUseCase struct {
@@ -44,6 +45,7 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInput) (*entities.User, err
 		input.Phone,
 		input.Address,
 		input.Profile,
+		input.Role,
 	)
 
 	if err := uc.repo.Create(user); err != nil {

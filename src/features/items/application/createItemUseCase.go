@@ -27,6 +27,18 @@ type CreateItemUseCase struct {
 	catRepo domain.CategoryRepository
 }
 
+func normalizePriceType(raw string) string {
+	s := strings.TrimSpace(strings.ToUpper(raw))
+	switch s {
+	case "POR_HORA", "HORA", "HORAS", "HOUR", "HOURS", "XHORA", "X_HORA", "XH":
+		return "POR_HORA"
+	case "POR_DIA", "DIA", "DÍA", "DIAS", "DÍAS", "DAY", "DAYS", "XDIA", "X_DIA", "XD":
+		return "POR_DIA"
+	default:
+		return ""
+	}
+}
+
 func NewCreateItemUseCase(repo domain.ItemRepository, catRepo domain.CategoryRepository) *CreateItemUseCase {
 	return &CreateItemUseCase{repo: repo, catRepo: catRepo}
 }
@@ -35,13 +47,13 @@ func (uc *CreateItemUseCase) Execute(input CreateItemInput) (*entities.Item, err
 	input.Title = strings.TrimSpace(input.Title)
 	input.Description = strings.TrimSpace(input.Description)
 	input.Category = strings.TrimSpace(input.Category)
-	input.PriceType = strings.TrimSpace(strings.ToUpper(input.PriceType))
+	input.PriceType = normalizePriceType(input.PriceType)
 
 	if input.Title == "" || input.Description == "" || input.Category == "" || input.Price == 0 || input.PriceType == "" || input.ImageURL == "" || input.OwnerID == 0 {
 		return nil, errors.New("missing required fields")
 	}
-	if input.PriceType != "POR_HORA" && input.PriceType != "POR_DIA" {
-		return nil, errors.New("invalid price_type")
+	if input.PriceType == "" {
+		return nil, errors.New("invalid price_type: usa 'por_hora' o 'por_dia'")
 	}
 
 	category, err := uc.catRepo.Resolve(input.Category)

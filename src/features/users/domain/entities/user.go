@@ -10,11 +10,15 @@ type User struct {
 	Phone         string
 	Address       string
 	ProfilePicURL string
+	Role          string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
 
-func NewUser(fullName, email, password, phone, address, profilePicURL string) *User {
+func NewUser(fullName, email, password, phone, address, profilePicURL, role string) *User {
+	if role == "" {
+		role = "user"
+	}
 	return &User{
 		FullName:      fullName,
 		Email:         email,
@@ -22,6 +26,7 @@ func NewUser(fullName, email, password, phone, address, profilePicURL string) *U
 		Phone:         phone,
 		Address:       address,
 		ProfilePicURL: profilePicURL,
+		Role:          role,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}

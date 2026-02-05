@@ -52,6 +52,28 @@ type categoryRequest struct {
 	Name string `json:"name"`
 }
 
+func isUniqueConstraintErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate") || strings.Contains(msg, "duplicada") || strings.Contains(msg, "unique") || strings.Contains(msg, "llave duplicada")
+}
+
+func ensureAdmin(ctx *gin.Context) bool {
+	roleVal, ok := ctx.Get("userRole")
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return false
+	}
+	role := strings.ToLower(roleVal.(string))
+	if role != "superadmin" {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return false
+	}
+	return true
+}
+
 func NewItemController(createUC *application.CreateItemUseCase, listUC *application.ListItemsUseCase, listCatUC *application.ListCategoriesUseCase, createCatUC *application.CreateCategoryUseCase, updateCatUC *application.UpdateCategoryUseCase, deleteCatUC *application.DeleteCategoryUseCase, getUC *application.GetItemUseCase, updateUC *application.UpdateItemUseCase, deleteUC *application.DeleteItemUseCase, storage FileStorage) *ItemController {
 	return &ItemController{createUC: createUC, listUC: listUC, listCatUC: listCatUC, createCatUC: createCatUC, updateCatUC: updateCatUC, deleteCatUC: deleteCatUC, getUC: getUC, updateUC: updateUC, deleteUC: deleteUC, storage: storage}
 }
@@ -120,7 +142,6 @@ func (c *ItemController) List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, items)
 }
 
-// Categories returns the predefined categories list.
 func (c *ItemController) Categories(ctx *gin.Context) {
 	cats, err := c.listCatUC.Execute()
 	if err != nil {
@@ -130,8 +151,11 @@ func (c *ItemController) Categories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cats)
 }
 
-// CreateCategory creates a new category (protected).
 func (c *ItemController) CreateCategory(ctx *gin.Context) {
+	if !ensureAdmin(ctx) {
+		return
+	}
+
 	var req categoryRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -141,7 +165,7 @@ func (c *ItemController) CreateCategory(ctx *gin.Context) {
 	cat, err := c.createCatUC.Execute(req.Name)
 	if err != nil {
 		status := http.StatusBadRequest
-		if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+		if isUniqueConstraintErr(err) {
 			status = http.StatusConflict
 		}
 		ctx.JSON(status, gin.H{"error": err.Error()})
@@ -151,8 +175,11 @@ func (c *ItemController) CreateCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, cat)
 }
 
-// UpdateCategory updates an existing category name (and slug).
 func (c *ItemController) UpdateCategory(ctx *gin.Context) {
+	if !ensureAdmin(ctx) {
+		return
+	}
+
 	idParam := ctx.Param("id")
 	id64, err := strconv.ParseUint(idParam, 10, 64)
 	if err != nil {
@@ -171,7 +198,7 @@ func (c *ItemController) UpdateCategory(ctx *gin.Context) {
 		status := http.StatusBadRequest
 		if err == gorm.ErrRecordNotFound {
 			status = http.StatusNotFound
-		} else if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+		} else if isUniqueConstraintErr(err) {
 			status = http.StatusConflict
 		}
 		ctx.JSON(status, gin.H{"error": err.Error()})
@@ -181,8 +208,11 @@ func (c *ItemController) UpdateCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cat)
 }
 
-// DeleteCategory removes a category.
 func (c *ItemController) DeleteCategory(ctx *gin.Context) {
+	if !ensureAdmin(ctx) {
+		return
+	}
+
 	idParam := ctx.Param("id")
 	id64, err := strconv.ParseUint(idParam, 10, 64)
 	if err != nil {

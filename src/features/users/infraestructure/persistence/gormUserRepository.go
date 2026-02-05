@@ -18,6 +18,7 @@ type UserModel struct {
 	Phone         string
 	Address       string
 	ProfilePicURL string
+	Role          string `gorm:"not null;default:user"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
@@ -31,6 +32,7 @@ func toModel(e *entities.User) UserModel {
 		Phone:         e.Phone,
 		Address:       e.Address,
 		ProfilePicURL: e.ProfilePicURL,
+		Role:          e.Role,
 		CreatedAt:     e.CreatedAt,
 		UpdatedAt:     e.UpdatedAt,
 	}
@@ -45,6 +47,7 @@ func toEntity(m UserModel) *entities.User {
 		Phone:         m.Phone,
 		Address:       m.Address,
 		ProfilePicURL: m.ProfilePicURL,
+		Role:          m.Role,
 		CreatedAt:     m.CreatedAt,
 		UpdatedAt:     m.UpdatedAt,
 	}

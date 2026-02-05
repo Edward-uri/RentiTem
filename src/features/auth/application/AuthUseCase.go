@@ -14,7 +14,7 @@ type PasswordService interface {
 }
 
 type TokenService interface {
-	Generate(userID uint, email string) (string, error)
+	Generate(userID uint, email, role string) (string, error)
 }
 
 type RegisterInput struct {
@@ -23,6 +23,7 @@ type RegisterInput struct {
 	Password string
 	Phone    string
 	Address  string
+	Role     string
 }
 
 type LoginInput struct {
@@ -43,9 +44,16 @@ func NewAuthUseCase(repo domain.AuthRepository, pwd PasswordService, token Token
 func (uc *AuthUseCase) Register(input RegisterInput) (string, *entities.User, error) {
 	input.Email = strings.TrimSpace(input.Email)
 	input.FullName = strings.TrimSpace(input.FullName)
+	input.Role = strings.ToLower(strings.TrimSpace(input.Role))
 
 	if input.Email == "" || input.Password == "" || input.FullName == "" || input.Phone == "" || input.Address == "" {
 		return "", nil, errors.New("missing required fields")
+	}
+	if input.Role == "" {
+		input.Role = "user"
+	}
+	if input.Role != "user" && input.Role != "superadmin" {
+		return "", nil, errors.New("invalid role")
 	}
 	if len(input.Password) < 6 {
 		return "", nil, errors.New("password too short")
@@ -64,12 +72,12 @@ func (uc *AuthUseCase) Register(input RegisterInput) (string, *entities.User, er
 		return "", nil, err
 	}
 
-	user := entities.NewUser(input.FullName, input.Email, hash, input.Phone, input.Address, "")
+	user := entities.NewUser(input.FullName, input.Email, hash, input.Phone, input.Address, "", input.Role)
 	if err := uc.repo.Create(user); err != nil {
 		return "", nil, err
 	}
 
-	token, err := uc.tokenSource.Generate(user.ID, user.Email)
+	token, err := uc.tokenSource.Generate(user.ID, user.Email, user.Role)
 	if err != nil {
 		return "", nil, err
 	}
@@ -95,7 +103,7 @@ func (uc *AuthUseCase) Login(input LoginInput) (string, *entities.User, error) {
 		return "", nil, errors.New("invalid credentials")
 	}
 
-	token, err := uc.tokenSource.Generate(user.ID, user.Email)
+	token, err := uc.tokenSource.Generate(user.ID, user.Email, user.Role)
 	if err != nil {
 		return "", nil, err
 	}

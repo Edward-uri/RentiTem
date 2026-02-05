@@ -2,7 +2,6 @@ package application
 
 import "main/src/features/items/domain"
 
-// DeleteCategoryUseCase removes a category by id.
 type DeleteCategoryUseCase struct {
 	repo domain.CategoryRepository
 }

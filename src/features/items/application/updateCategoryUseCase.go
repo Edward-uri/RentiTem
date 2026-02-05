@@ -8,7 +8,6 @@ import (
 	"main/src/features/items/domain/entities"
 )
 
-// UpdateCategoryUseCase updates category name (and slug).
 type UpdateCategoryUseCase struct {
 	repo domain.CategoryRepository
 }

@@ -36,7 +36,7 @@ const doc = `{
           }
         ],
         "responses": {
-          "201": {"description": "Created"},
+          "201": {"description": "Created", "schema": {"$ref": "#/definitions/authResponse"}},
           "400": {"description": "Bad Request"}
         }
       }
@@ -58,7 +58,7 @@ const doc = `{
           }
         ],
         "responses": {
-          "200": {"description": "OK"},
+          "200": {"description": "OK", "schema": {"$ref": "#/definitions/authResponse"}},
           "400": {"description": "Bad Request"},
           "401": {"description": "Unauthorized"}
         }
@@ -87,7 +87,7 @@ const doc = `{
           {"name": "title", "in": "formData", "type": "string", "required": true},
           {"name": "description", "in": "formData", "type": "string", "required": true},
           {"name": "price", "in": "formData", "type": "number", "required": true},
-          {"name": "price_type", "in": "formData", "type": "string", "required": true},
+          {"name": "price_type", "in": "formData", "type": "string", "enum": ["por_hora", "por_dia"], "required": true},
           {"name": "category", "in": "formData", "type": "string", "required": true},
           {"name": "image", "in": "formData", "type": "file", "required": true}
         ],
@@ -122,6 +122,7 @@ const doc = `{
           "201": {"description": "Created"},
           "400": {"description": "Bad Request"},
           "401": {"description": "Unauthorized"},
+          "403": {"description": "Forbidden (requires superadmin)"},
           "409": {"description": "Conflict"}
         }
       }
@@ -141,6 +142,7 @@ const doc = `{
           "200": {"description": "OK"},
           "400": {"description": "Bad Request"},
           "401": {"description": "Unauthorized"},
+          "403": {"description": "Forbidden (requires superadmin)"},
           "404": {"description": "Not Found"},
           "409": {"description": "Conflict"}
         }
@@ -156,6 +158,7 @@ const doc = `{
           "200": {"description": "OK"},
           "400": {"description": "Bad Request"},
           "401": {"description": "Unauthorized"},
+          "403": {"description": "Forbidden (requires superadmin)"},
           "404": {"description": "Not Found"}
         }
       }
@@ -232,13 +235,14 @@ const doc = `{
   "definitions": {
     "registerRequest": {
       "type": "object",
-      "required": ["full_name", "email", "password", "phone", "address"],
+      "required": ["full_name", "email", "password", "phone", "address", "role"],
       "properties": {
         "full_name": {"type": "string"},
         "email": {"type": "string"},
         "password": {"type": "string"},
         "phone": {"type": "string"},
-        "address": {"type": "string"}
+        "address": {"type": "string"},
+        "role": {"type": "string", "enum": ["user", "superadmin"]}
       }
     },
     "loginRequest": {
@@ -279,6 +283,13 @@ const doc = `{
       "required": ["name"],
       "properties": {
         "name": {"type": "string"}
+      }
+    },
+    "authResponse": {
+      "type": "object",
+      "properties": {
+        "message": {"type": "string"},
+        "token": {"type": "string"}
       }
     }
   }

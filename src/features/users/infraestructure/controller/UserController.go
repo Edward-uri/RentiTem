@@ -51,6 +51,7 @@ func (c *UserController) GetMe(ctx *gin.Context) {
 		"phone":       user.Phone,
 		"address":     user.Address,
 		"profile_pic": user.ProfilePicURL,
+		"role":        user.Role,
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 	"main/src/features/items/domain/entities"
 )
 
-// CreateCategoryUseCase handles creation of a new category.
 type CreateCategoryUseCase struct {
 	repo domain.CategoryRepository
 }

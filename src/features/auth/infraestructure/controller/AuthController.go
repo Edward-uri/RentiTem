@@ -22,6 +22,7 @@ type registerRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 	Phone    string `json:"phone" binding:"required"`
 	Address  string `json:"address" binding:"required"`
+	Role     string `json:"role" binding:"required,oneof=user superadmin"`
 }
 
 type loginRequest struct {
@@ -30,8 +31,8 @@ type loginRequest struct {
 }
 
 type authResponse struct {
-	Token string      `json:"token"`
-	User  interface{} `json:"user"`
+	Message string `json:"message"`
+	Token   string `json:"token"`
 }
 
 // Register handles user registration.
@@ -51,28 +52,21 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		return
 	}
 
-	token, user, err := c.uc.Register(application.RegisterInput{
+	token, _, err := c.uc.Register(application.RegisterInput{
 		FullName: req.FullName,
 		Email:    req.Email,
 		Password: req.Password,
 		Phone:    req.Phone,
 		Address:  req.Address,
+		Role:     req.Role,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, authResponse{
-		Token: token,
-		User: gin.H{
-			"id":        user.ID,
-			"full_name": user.FullName,
-			"email":     user.Email,
-			"phone":     user.Phone,
-			"address":   user.Address,
-		},
-	})
+	ctx.Header("Authorization", "Bearer "+token)
+	ctx.JSON(http.StatusCreated, authResponse{Message: "registered", Token: token})
 }
 
 // Login handles user login.
@@ -92,7 +86,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, user, err := c.uc.Login(application.LoginInput{
+	token, _, err := c.uc.Login(application.LoginInput{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -105,14 +99,6 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, authResponse{
-		Token: token,
-		User: gin.H{
-			"id":        user.ID,
-			"full_name": user.FullName,
-			"email":     user.Email,
-			"phone":     user.Phone,
-			"address":   user.Address,
-		},
-	})
+	ctx.Header("Authorization", "Bearer "+token)
+	ctx.JSON(http.StatusOK, authResponse{Message: "authenticated", Token: token})
 }

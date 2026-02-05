@@ -33,7 +33,6 @@ func (s *JWTService) Generate(userID uint, email string) (string, error) {
 	return token.SignedString([]byte(s.secret))
 }
 
-// Validate parses and validates a token, returning user id and email.
 func (s *JWTService) Validate(tokenStr string) (uint, string, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {

@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	DBURL string
-	Port  string
+	DBURL     string
+	Port      string
+	UploadDir string
 }
 
 func Load() Config {
@@ -18,8 +19,9 @@ func Load() Config {
 	_ = godotenv.Load("../.env")
 
 	return Config{
-		DBURL: envOr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/rentitems?sslmode=disable"),
-		Port:  normalizePort(envOr("HTTP_PORT", "8080")),
+		DBURL:     envOr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/rentitems?sslmode=disable"),
+		Port:      normalizePort(envOr("HTTP_PORT", "8080")),
+		UploadDir: envOr("UPLOAD_DIR", "uploads"),
 	}
 }
 

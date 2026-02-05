@@ -13,6 +13,9 @@ import (
 	AuthInfra "main/src/features/auth/infraestructure"
 	AuthMiddleware "main/src/features/auth/infraestructure/middleware"
 	AuthRoutes "main/src/features/auth/infraestructure/routes"
+	ItemInfra "main/src/features/items/infraestructure"
+	ItemPersistence "main/src/features/items/infraestructure/persistence"
+	ItemRoutes "main/src/features/items/infraestructure/routes"
 	UserInfra "main/src/features/users/infraestructure"
 	UserPersistence "main/src/features/users/infraestructure/persistence"
 	UserRoutes "main/src/features/users/infraestructure/routes"
@@ -25,8 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-
-	if err := coredb.AutoMigrate(database, &UserPersistence.UserModel{}); err != nil {
+	if err := coredb.AutoMigrate(database, &UserPersistence.UserModel{}, &ItemPersistence.CategoryModel{}, &ItemPersistence.ItemModel{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
 
@@ -39,6 +41,9 @@ func main() {
 	usersDeps := UserInfra.NewUsersDependencies(database)
 	protected := api.Group("")
 	protected.Use(AuthMiddleware.JWTAuthMiddleware(authDeps.JWT))
+
+	itemDeps := ItemInfra.NewDependencies(database, usersDeps.Repo, cfg.UploadDir)
+	ItemRoutes.RegisterItemRoutes(api, protected, itemDeps.Controller)
 	UserRoutes.RegisterUserRoutes(protected, usersDeps.Controller)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

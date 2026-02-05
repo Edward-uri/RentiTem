@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// New opens a GORM connection with sane defaults for Postgres.
 func New(dsn string) (*gorm.DB, error) {
 	cfg := &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
 	database, err := gorm.Open(postgres.Open(dsn), cfg)
@@ -27,7 +26,6 @@ func New(dsn string) (*gorm.DB, error) {
 	return database, nil
 }
 
-// AutoMigrate centralizes migrations for the provided models.
 func AutoMigrate(database *gorm.DB, models ...interface{}) error {
 	return database.AutoMigrate(models...)
 }

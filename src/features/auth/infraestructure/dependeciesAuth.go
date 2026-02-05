@@ -12,12 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// Dependencies bundles all auth adapters and use cases.
 type Dependencies struct {
 	Controller *controller.AuthController
+	JWT        *services.JWTService
 }
 
-// NewDependencies builds auth feature wiring using shared DB.
 func NewDependencies(db *gorm.DB) Dependencies {
 	pwd := services.NewBcryptService(12)
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -30,5 +29,5 @@ func NewDependencies(db *gorm.DB) Dependencies {
 	uc := application.NewAuthUseCase(repo, pwd, jwtSvc)
 	ctrl := controller.NewAuthController(uc)
 
-	return Dependencies{Controller: ctrl}
+	return Dependencies{Controller: ctrl, JWT: jwtSvc}
 }

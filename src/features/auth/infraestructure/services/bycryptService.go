@@ -2,7 +2,6 @@ package services
 
 import "golang.org/x/crypto/bcrypt"
 
-// BcryptService hashes and compares passwords using bcrypt.
 type BcryptService struct {
 	cost int
 }

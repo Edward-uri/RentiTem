@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterAuthRoutes binds auth endpoints to the router group.
 func RegisterAuthRoutes(rg *gin.RouterGroup, ctrl *controller.AuthController) {
 	api := rg.Group("/auth")
 	api.POST("/register", ctrl.Register)

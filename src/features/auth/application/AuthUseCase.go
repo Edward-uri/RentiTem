@@ -8,13 +8,11 @@ import (
 	"main/src/features/users/domain/entities"
 )
 
-// PasswordService abstracts hashing/verification.
 type PasswordService interface {
 	Hash(password string) (string, error)
 	Compare(hashed, plain string) bool
 }
 
-// TokenService abstracts JWT generation.
 type TokenService interface {
 	Generate(userID uint, email string) (string, error)
 }

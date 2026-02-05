@@ -7,17 +7,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config holds cross-cutting configuration values.
 type Config struct {
 	DBURL string
 	Port  string
 }
 
-// Load builds Config from environment variables.
 func Load() Config {
-	_ = godotenv.Load(".env")     // best-effort root .env
-	_ = godotenv.Load("src/.env") // fallback when running from repo root
-	_ = godotenv.Load("../.env")  // fallback when invoked inside src/
+	_ = godotenv.Load(".env")
+	_ = godotenv.Load("src/.env")
+	_ = godotenv.Load("../.env")
 
 	return Config{
 		DBURL: envOr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/rentitems?sslmode=disable"),

@@ -4,12 +4,18 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"main/src/core/config"
 	coredb "main/src/core/db"
+	_ "main/src/docs"
 	AuthInfra "main/src/features/auth/infraestructure"
+	AuthMiddleware "main/src/features/auth/infraestructure/middleware"
 	AuthRoutes "main/src/features/auth/infraestructure/routes"
+	UserInfra "main/src/features/users/infraestructure"
 	UserPersistence "main/src/features/users/infraestructure/persistence"
+	UserRoutes "main/src/features/users/infraestructure/routes"
 )
 
 func main() {
@@ -20,7 +26,6 @@ func main() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	// Auto-migrate user table.
 	if err := coredb.AutoMigrate(database, &UserPersistence.UserModel{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
@@ -30,6 +35,13 @@ func main() {
 
 	authDeps := AuthInfra.NewDependencies(database)
 	AuthRoutes.RegisterAuthRoutes(api, authDeps.Controller)
+
+	usersDeps := UserInfra.NewUsersDependencies(database)
+	protected := api.Group("")
+	protected.Use(AuthMiddleware.JWTAuthMiddleware(authDeps.JWT))
+	UserRoutes.RegisterUserRoutes(protected, usersDeps.Controller)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("server error: %v", err)

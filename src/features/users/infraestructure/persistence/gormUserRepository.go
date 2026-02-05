@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserModel is the persistence representation mapped by GORM.
 type UserModel struct {
 	ID            uint   `gorm:"primaryKey"`
 	FullName      string `gorm:"not null"`
@@ -51,7 +50,6 @@ func toEntity(m UserModel) *entities.User {
 	}
 }
 
-// GormUserRepository implements UserRepository with GORM.
 type GormUserRepository struct {
 	db *gorm.DB
 }
@@ -80,4 +78,20 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 		return nil, err
 	}
 	return toEntity(model), nil
+}
+
+func (r *GormUserRepository) FindByID(id uint) (*entities.User, error) {
+	var model UserModel
+	if err := r.db.First(&model, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toEntity(model), nil
+}
+
+func (r *GormUserRepository) Update(user *entities.User) error {
+	model := toModel(user)
+	return r.db.Model(&UserModel{}).Where("id = ?", user.ID).Updates(model).Error
 }
